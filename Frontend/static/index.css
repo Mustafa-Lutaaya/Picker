@@ -1,0 +1,22 @@
+body{
+background-color: white;
+padding: 20px;
+}
+
+/* Header Section */
+.header{
+    display: flex;
+    gap: 100px;
+}
+
+.header-logo{
+    height: auto;
+    width: 80px;
+    max-width: 100px;
+}
+
+.nav-bar{
+    color: bisque;
+    display: flex;
+    justify-content: center;
+}
