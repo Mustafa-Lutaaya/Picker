@@ -14,6 +14,7 @@ if not DATABASE_URL:
 engine = create_engine(DATABASE_URL,poolclass=QueuePool,pool_size=2, max_overflow=0, pool_pre_ping=True, pool_recycle=300 ) # Creates database engine using SQLite, limits concurrent connections, verifies connections before use and recycles connections every 5 minutes
 SessionLocal = sessionmaker(bind=engine, autoflush=False) # Creates a class called SessionLocal that creates database sessions like add(), delete() etc. autoflush ensures changes wont be automatically flushed to the DB until committed
 Base = declarative_base() # Base class for ORM model classes from which ever model will inherit from
+Base.metadata.create_all(bind=engine)
 
 # Dependency function that creates and provides a new database session for each request
 def get_db():

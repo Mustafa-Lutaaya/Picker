@@ -9,11 +9,11 @@ class Tür(Base):
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     mark_id = Column(Integer, ForeignKey("Marke.id"), nullable=False) # Links to the Mark
-    richtung_id = Column(Integer, ForeignKey("Richtung.id"), nullable=False) # Links to the Richtung
-    höhe_id = Column(Integer, ForeignKey("Höhe.id"), nullable=False) # Links to the Höhe
-    breite_id = Column(Integer, ForeignKey("Breite.id"), nullable=False) # Links to the Breite
-    oberfläche_id = Column(Integer, ForeignKey("Oberfläche.id"), nullable=False) # Links to the Oberfläche
-    schlossart_id = Column(Integer, ForeignKey("Schlossart.id"), nullable=False) # Links to the Schlossart
+    richtung_id = Column(Integer, ForeignKey("Richtungen.id"), nullable=False) # Links to the Richtung
+    höhe_id = Column(Integer, ForeignKey("Höhen.id"), nullable=False) # Links to the Höhe
+    breite_id = Column(Integer, ForeignKey("Breiten.id"), nullable=False) # Links to the Breite
+    oberfläche_id = Column(Integer, ForeignKey("Oberflächen.id"), nullable=False) # Links to the Oberfläche
+    schlossart_id = Column(Integer, ForeignKey("Schlossarten.id"), nullable=False) # Links to the Schlossart
     description = Column(String, nullable=True) # Adds an optional description
 
     @property
@@ -51,7 +51,7 @@ class Tür(Base):
 # REQUIRED SPECIFICATIONS MODELS
 # ORM Model representing a row in the "Mark" table
 class Mark(Base):
-    __tablename__ = "Mark" # Table name in the database
+    __tablename__ = "Marke" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
@@ -61,7 +61,7 @@ class Mark(Base):
 
 # ORM Model representing a row in the "Richtung" table
 class Richtung(Base):
-    __tablename__ = "Richtung" # Table name in the database
+    __tablename__ = "Richtungen" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
@@ -72,7 +72,7 @@ class Richtung(Base):
 
 # ORM Model representing a row in the "Höhe" table
 class Höhe(Base):
-    __tablename__ = "Höhe" # Table name in the database
+    __tablename__ = "Höhen" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
@@ -83,7 +83,7 @@ class Höhe(Base):
 
 # ORM Model representing a row in the "Breite" table
 class Breite(Base):
-    __tablename__ = "Breite" # Table name in the database
+    __tablename__ = "Breiten" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
@@ -94,18 +94,18 @@ class Breite(Base):
 
 # ORM Model representing a row in the "Oberfläche" table
 class Oberfläche(Base):
-    __tablename__ = "Oberfläche" # Table name in the database
+    __tablename__ = "Oberflächen" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
     
-    türen = relationship("Tür", back_populates="öberflache", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
+    türen = relationship("Tür", back_populates="oberfläche", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
 
 # OPTIONAL SPECIFICATIONS
 # ORM Model representing a row in the "Schlossart" table
 class Schlossart(Base):
-    __tablename__ = "Schlossart" # Table name in the database
+    __tablename__ = "Schlossarten" # Table name in the database
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
