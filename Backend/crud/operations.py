@@ -53,6 +53,62 @@ class MarkCRUD:
             db.delete(m) # Marks the Mark for deletion in the current session
         db.commit() # Commits the transaction to remove the Mark from the database permanently
         return M  # Returns the deleted Mark instance or None if not found
+
+# TÜR OPERATIONS
+class TürCRUD:
+    # Function to create a new Tür
+    def create_tür(self, db: Session,  tür: CreateTür):
+        new_tür = Tür(**tür.model_dump())
+        db.add(new_tür)
+        db.commit()
+        db.refresh(new_tür) 
+        return new_tür 
+     
+    # Function to get all türen from the database with active database session as parameter
+    def get_all_türen(self, db: Session):
+        return db.query(Tür).all()
+    
+    # Function to return a single tür by name with active database session as parameteres
+    def get_tür_by_name(self, db: Session, name: str):
+        return db.query(Tür).filter(Tür.name == name).first()
+    
+    # Function to update a Tür from the database identified by name
+    def update_tür(self, db: Session, name: str, tür_data: CreateTür):
+        T = self.get_tür_by_name(db, name)
+       
+        if not T:
+            return None
+        
+        T.name = tür_data.name
+        T.mark = tür_data.mark_name
+        T.richtung = tür_data.richtung_name
+        T.höhe = tür_data.hohe_name
+        T.breite = tür_data.breite_name
+        T.oberfläche = tür_data.oberfläche_name
+        T.schlossart = tür_data.schlossart_name
+        T.description = tür_data.description
+
+        db.commit()
+        db.refresh(T)
+        return T
+
+    # Function to delete a Tür from the database identified by name
+    def delete_tür(self, db: Session, name: str):
+        T = self.get_tür_by_name(db, name) 
+
+        if T:
+            db.delete(T)
+            db.commit()
+        return T
+
+    # Function to delete all Türen
+    def delete_all_türen(self, db: Session):
+        T = self.get_all_türen(db)
+
+        for t in T:
+            db.delete(t) 
+        db.commit() 
+        return T
     
 # Richtung OPERATIONS
 class RichtungCRUD:

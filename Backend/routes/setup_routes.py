@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, Body # Imports APIRouter to create a modular group of API Routes, HTTPException for raising HTTP error responses
 from sqlalchemy.orm import Session # Imports SQLAlchemy ORM database Session class for querying data
 from database.database import get_db, engine, Base # Imports database configurations & dependency function to provide a database session for each request
-from crud.operations import MarkCRUD, RichtungCRUD, HöheCRUD, BreiteCRUD, OberflächeCRUD, SchlossartCRUD # Imports CRUD operations for database interaction
-from schemas.schemas import CreateTür, CreateMark, ReadMark, CreateRichtung, ReadRichtung, CreateHöhe, ReadHöhe, CreateBreite, ReadBreite, CreateOberfläche, ReadOberfläche, CreateSchlossart, ReadSchlossart # Imports Pydantic schemas for request validation and response formatting
+from crud.operations import MarkCRUD, RichtungCRUD, HöheCRUD, BreiteCRUD, OberflächeCRUD, SchlossartCRUD, TürCRUD # Imports CRUD operations for database interaction
+from schemas.schemas import CreateTür, ReadTür, CreateMark, ReadMark, CreateRichtung, ReadRichtung, CreateHöhe, ReadHöhe, CreateBreite, ReadBreite, CreateOberfläche, ReadOberfläche, CreateSchlossart, ReadSchlossart # Imports Pydantic schemas for request validation and response formatting
 from typing import List, Optional # Imports typing for Type hinting support
 
 # Initializes CRUD operation classes
 router = APIRouter() # Router configuration for administrative endpoints
+tcrud = TürCRUD()  # Initializes Tür class instance to perform DB Operations
 mcrud = MarkCRUD() # Initializes Mark class instance to perform DB Operations
 rcrud = RichtungCRUD() # Initializes Richtung class instance to perform DB Operations
 hcrud = HöheCRUD() # Initializes Höhe class instance to perform DB Operations
@@ -71,6 +72,64 @@ def delete_all_marke(db: Session = Depends(get_db)): # Injects DB session depend
         return deleted # Returns list of deleted Marke
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) # Handles unexpected errors and returns HTTP 500
+
+# TÜREN ROUTES
+# Route to get all Türen from the database
+@router.get("/türen", response_model=list[ReadTür], response_model_exclude_none=True)  
+def get_türen(db: Session = Depends(get_db)):
+    try: 
+        return tcrud.get_all_türen(db) 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) # 
+
+# Route to get a single Tür by name
+@router.get("/tür/{name}", response_model=ReadTür, response_model_exclude_none=True) 
+def get_tür(name: str, db: Session = Depends(get_db)): 
+    tür = tcrud.get_tür_by_name(db, name)
+    if not tür:
+        raise HTTPException(status_code=404, detail="Tür not found") 
+    return tür
+
+# Route to create a new Tür
+@router.post("/türen", response_model=ReadTür, response_model_exclude_none=True) 
+def create_tür(tür: CreateTür, db: Session = Depends(get_db)): 
+    exisiting = tcrud.get_tür_by_name(db, tür.name) 
+    if exisiting:
+        raise HTTPException(status_code=400, detail="Tür already exists")
+    try:
+        new_tür = rcrud.create_richtung(db, tür)
+        return new_tür
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 
+
+# Route to update a Tür using its name
+@router.put("/update-tür/{name}", response_model=ReadTür)
+def update_tür(name: str, tür: CreateTür, db: Session = Depends(get_db)):
+    updated = tcrud.update_tür(db, name, tür)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Tür not found")
+    return updated
+
+# Route to delete a Tür using its name
+@router.delete("/delete-tür/{name}", response_model=ReadTür)
+def delete_tür(name: str, db: Session = Depends(get_db)): 
+    T = tcrud.delete_tür(db, name)  
+    if not T:
+        raise HTTPException(status_code=404, detail="Tür not found") 
+    return T
+
+# Route to delete all Türen
+@router.delete("/türen", response_model=List[ReadRichtung]) 
+def delete_all_türen(db: Session = Depends(get_db)):
+    try:
+        T = tcrud.get_all_türen(db)
+        if not T:
+            raise HTTPException(status_code=404, detail="No Türen found")
+        
+        deleted = tcrud.delete_all_türen(db)
+        return deleted 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # RICHTUNG ROUTES
 # Route to get all Richtungen from the database

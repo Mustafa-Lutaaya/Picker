@@ -1,22 +1,62 @@
+/* Font 1 Import */
+@font-face {
+    font-family: "ClaFont";
+    src: url("/Frontend/static/fonts/clacon2.ttf") format(truetype);
+}
+
+/* Font 2 Import */
+@font-face {
+    font-family: "UniFont";
+    src: url("/Frontend/static/fonts/unifont-17.0.03.otf") format(opentype);
+}
+
+/* Body Section */
 body{
-background-color: white;
+background-color: black;
+font-family: "ClaFont";
+color: white;
 padding: 20px;
+}
+
+/* Main Section */
+.main{
+    padding: 20px;
+    border: 5px #4E31AA double;
+    box-sizing: border-box;
 }
 
 /* Header Section */
 .header{
     display: flex;
-    gap: 100px;
+    justify-content: space-between;
+
 }
 
 .header-logo{
     height: auto;
-    width: 80px;
-    max-width: 100px;
+    width: 100px;
+    max-width: 105px;
 }
 
-.nav-bar{
-    color: bisque;
-    display: flex;
-    justify-content: center;
+.dateandtime{
+    justify-items: end;
+}
+
+/* Other Section */
+.container {
+  width: 90%;          
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 20px;          
+}
+
+.column {
+  flex: 1;            
+  width: calc((100% - 40px) / 2); 
+  background: black;
+  border: #4E31AA dotted ;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
