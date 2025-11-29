@@ -1,9 +1,7 @@
-from fastapi import Request # Imports FastAPI request object
-from sqlalchemy.orm import Session, joinedload, selectinload # Imports SQLAlchemy Session for DB operations, and loading strategies for relationships
-from sqlalchemy import select # Imports the select construct for building SQL queries
-from models.models import Tür, Mark, Richtung, Höhe, Breite, Oberfläche, Schlossart # Imports all SQLAlchemy ORM models
-from schemas.schemas import CreateTür, CreateMark, CreateRichtung, CreateHöhe, CreateBreite, CreateOberfläche, CreateSchlossart # Imports Pydantic schemas for request validation and response formatting
-from typing import Dict, Any, List, Union # Adds support for generic dictionary typing
+from sqlalchemy.orm import Session # Imports SQLAlchemy Session for DB operations, and loading strategies for relationships
+from sqlalchemy.orm import joinedload
+from models.models import Tür, Zarge, Mark, Richtung, Höhe, Breite, Oberfläche, Schlossart, Wandstärk, Zargenart, Kunde, Lager # Imports all SQLAlchemy ORM models
+from schemas.schemas import CreateTür, CreateZarge, CreateMark, CreateRichtung, CreateHöhe, CreateBreite, CreateZargenart, CreateWandstärk, CreateOberfläche, CreateSchlossart, CreateKunde, CreateLagerOrt # Imports Pydantic schemas for request validation and response formatting
 
 # Mark OPERATIONS
 class MarkCRUD:
@@ -58,15 +56,59 @@ class MarkCRUD:
 class TürCRUD:
     # Function to create a new Tür
     def create_tür(self, db: Session,  tür: CreateTür):
-        new_tür = Tür(**tür.model_dump())
+
+        mark = db.query(Mark).filter(Mark.name == tür.mark_name).first()
+        richtung = db.query(Richtung).filter(Richtung.name == tür.richtung_name).first()
+        höhe = db.query(Höhe).filter(Höhe.name == tür.hohe_name).first()
+        breite = db.query(Breite).filter(Breite.name == tür.breite_name).first()
+        oberfläche = db.query(Oberfläche).filter(Oberfläche.name == tür.oberfläche_name).first()
+        schlossart = db.query(Schlossart).filter(Schlossart.name == tür.schlossart_name).first()
+        lagerort = db.query(Lager).filter(Lager.name == tür.lagerort_name).first()
+
+        if not all([mark, richtung, höhe, breite, oberfläche, schlossart, lagerort]):
+            return None
+        
+        existing = (db.query(Tür)
+            .filter(Tür.mark_id == mark.id, Tür.richtung_id == richtung.id,
+                Tür.höhe_id == höhe.id, Tür.breite_id == breite.id,
+                Tür.oberfläche_id == oberfläche.id,Tür.schlossart_id == schlossart.id, Tür.lagerort_id == lagerort.id
+            )
+            .first()
+        )
+
+        if existing:
+            existing.menge += 1
+            db.commit()
+            db.refresh(existing)
+            return existing
+        
+
+        new_tür = Tür(
+            mark_id=mark.id,
+            richtung_id=richtung.id,
+            höhe_id=höhe.id,
+            breite_id=breite.id,
+            oberfläche_id=oberfläche.id,
+            schlossart_id=schlossart.id,
+            lagerort_id=lagerort.id, 
+            description=tür.description,
+            gewicht=tür.gewicht
+        )
+
         db.add(new_tür)
         db.commit()
         db.refresh(new_tür) 
         return new_tür 
-     
+    
     # Function to get all türen from the database with active database session as parameter
     def get_all_türen(self, db: Session):
-        return db.query(Tür).all()
+            return db.query(Tür).options(
+                joinedload(Tür.oberfläche),
+                joinedload(Tür.breite),
+                joinedload(Tür.schlossart),
+                joinedload(Tür.lagerort)
+            ).all()
+
     
     # Function to return a single tür by name with active database session as parameteres
     def get_tür_by_name(self, db: Session, name: str):
@@ -79,6 +121,17 @@ class TürCRUD:
         if not T:
             return None
         
+        mark = db.query(Mark).filter(Mark.name == tür_data.mark_name).first()
+        richtung = db.query(Richtung).filter(Richtung.name == tür_data.richtung_name).first()
+        höhe = db.query(Höhe).filter(Höhe.name == tür_data.hohe_name).first()
+        breite = db.query(Breite).filter(Breite.name == tür_data.breite_name).first()
+        oberfläche = db.query(Oberfläche).filter(Oberfläche.name == tür_data.oberfläche_name).first()
+        schlossart = db.query(Schlossart).filter(Schlossart.name == tür_data.schlossart_name).first()
+        lagerort = db.query(Lager).filter(Lager.name == tür_data.lagerort_name).first()
+
+        if not all([mark, richtung, höhe, breite, oberfläche, schlossart]):
+            return None
+        
         T.name = tür_data.name
         T.mark = tür_data.mark_name
         T.richtung = tür_data.richtung_name
@@ -86,6 +139,8 @@ class TürCRUD:
         T.breite = tür_data.breite_name
         T.oberfläche = tür_data.oberfläche_name
         T.schlossart = tür_data.schlossart_name
+        T.lagerort_id = lagerort.id
+        T.gewicht = tür_data.gewicht
         T.description = tür_data.description
 
         db.commit()
@@ -109,6 +164,116 @@ class TürCRUD:
             db.delete(t) 
         db.commit() 
         return T
+    
+# ZARGE OPERATIONS
+class ZargeCRUD:
+    # Function to create a new Zarge
+    def create_zarge(self, db: Session, zarge: CreateZarge):
+        mark = db.query(Mark).filter(Mark.name == zarge.mark_name).first()
+        richtung = db.query(Richtung).filter(Richtung.name == zarge.richtung_name).first()
+        höhe = db.query(Höhe).filter(Höhe.name == zarge.hohe_name).first()
+        breite = db.query(Breite).filter(Breite.name == zarge.breite_name).first()
+        wandstärke = db.query(Wandstärk).filter(Wandstärk.name == zarge.wandstärke_name).first()
+        oberfläche = db.query(Oberfläche).filter(Oberfläche.name == zarge.oberfläche_name).first()
+        zargenart = db.query(Zargenart).filter(Zargenart.name == zarge.zargenart_name).first()
+        lagerort = db.query(Lager).filter(Lager.name == zarge.lagerort_name).first()
+
+        if not all([mark, richtung, höhe, breite, wandstärke, oberfläche, zargenart, lagerort]):
+            return None
+
+        existing = db.query(Zarge).filter(
+            Zarge.mark_id==mark.id,
+            Zarge.richtung_id==richtung.id,
+            Zarge.höhe_id==höhe.id,
+            Zarge.breite_id==breite.id,
+            Zarge.wandstärke_id==wandstärke.id,
+            Zarge.oberfläche_id==oberfläche.id,
+            Zarge.zargenart_id==zargenart.id,
+            Zarge.lagerort_id==lagerort.id
+        ).first()
+
+        if existing:
+            existing.menge += 1
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+        new_zarge = Zarge(
+            mark_id=mark.id,
+            richtung_id=richtung.id,
+            höhe_id=höhe.id,
+            breite_id=breite.id,
+            wandstärke_id=wandstärke.id,
+            oberfläche_id=oberfläche.id,
+            zargenart_id=zargenart.id,
+            lagerort_id=lagerort.id,
+            description=zarge.description,
+            gewicht=zarge.gewicht
+        )
+        db.add(new_zarge)
+        db.commit()
+        db.refresh(new_zarge)
+        return new_zarge
+    
+    # Function to get all Zargen
+    def get_all_zargen(self, db: Session):
+        return db.query(Zarge).all()
+    
+    # Function to get a single Zarge by name
+    def get_zarge_by_name(self, db: Session, name: str):
+        return db.query(Zarge).filter(Zarge.name == name).first()
+    
+    # Function to update a Zarge
+    def update_zarge(self, db: Session, name: str, zarge: CreateZarge):
+        Z = self.get_zarge_by_name(db, name)
+        if not Z:
+            return None
+        
+        mark = db.query(Mark).filter(Mark.name == zarge.mark_name).first()
+        richtung = db.query(Richtung).filter(Richtung.name == zarge.richtung_name).first()
+        höhe = db.query(Höhe).filter(Höhe.name == zarge.hohe_name).first()
+        breite = db.query(Breite).filter(Breite.name == zarge.breite_name).first()
+        wandstärke = db.query(Wandstärk).filter(Wandstärk.name == zarge.wandstärke_name).first()
+        oberfläche = db.query(Oberfläche).filter(Oberfläche.name == zarge.oberfläche_name).first()
+        zargenart = db.query(Zargenart).filter(Zargenart.name == zarge.zargenart_name).first()
+        lagerort = db.query(Lager).filter(Lager.name == zarge.lagerort_name).first()
+
+        if not all([mark, richtung, höhe, breite, wandstärke, oberfläche, zargenart, lagerort]):
+            return None
+        
+        Z.name = zarge.name
+        Z.mark = zarge.mark_name
+        Z.richtung = zarge.richtung_name
+        Z.höhe = zarge.hohe_name
+        Z.breite = zarge.breite_name
+        Z.wandstärke = zarge.wandstärke_name
+        Z.oberfläche = zarge.oberfläche_name
+        Z.zargenart = zarge.zargenart_name
+        Z.lagerort_id = lagerort.id
+        Z.gewicht = Zarge.gewicht
+        Z.description = zarge.description
+
+        db.commit()
+        db.refresh(Z)
+
+        return Z
+    
+    # Function to delete a single zarge
+    def delete_zarge(self, db: Session, name: str):
+        Z = self.get_zarge_by_name(db, name)
+        if Z:
+            db.delete(Z)
+            db.commit()
+        return Z
+    
+    # Function to delete all zargen
+    def delete_all_zargen(self, db: Session):
+        Z = self.get_all_zargen(db)
+        for z in Z:
+            db.delete(z)
+        db.commit()
+        return Z
+        
     
 # Richtung OPERATIONS
 class RichtungCRUD:
@@ -258,6 +423,52 @@ class BreiteCRUD:
             db.delete(b) 
         db.commit() 
         return B
+    
+# Wandstärke OPERATIONS
+class WandstärkCRUD:
+    # Function to create a wandstärk
+    def create_wandstärk(self, db: Session, wandstärk: CreateWandstärk):
+        new_w = Wandstärk(**wandstärk.model_dump())
+        db.add(new_w)
+        db.commit()
+        db.refresh(new_w)
+        return new_w
+    
+    # Function to get all wandstärken
+    def get_all_wandstärken(self, db: Session):
+        return db.query(Wandstärk).all()
+    
+    # Function to get a single wandstärk by name
+    def get_wandstärk_by_name(self, db: Session, name: str):
+        return db.query(Wandstärk).filter(Wandstärk.name == name).first()
+    
+    # Function to update a wandstärk
+    def update_wandstärk(self, db: Session, name: str, wandstärk_data: CreateWandstärk):
+        W = self.get_wandstärk_by_name(db, name)
+        if not W:
+            return None
+        W.name = wandstärk_data.name
+        W.nummer = wandstärk_data.nummer
+        W.description = wandstärk_data.description
+        db.commit()
+        db.refresh(W)
+        return W
+    
+    # Function to delete a wandstärk
+    def delete_wandstärk(self, db: Session, name: str):
+        W = self.get_wandstärk_by_name(db, name)
+        if W:
+            db.delete(W)
+            db.commit()
+        return W
+    
+    # Function to delete all wandstärken
+    def delete_all_wandstärken(self, db: Session):
+        all_w = self.get_all_wandstärken(db)
+        for w in all_w:
+            db.delete(w)
+        db.commit()
+        return all_w
 
 # Oberfläche OPERATIONS
 class OberflächeCRUD:
@@ -357,3 +568,157 @@ class SchlossartCRUD:
             db.delete(s) 
         db.commit() 
         return S
+
+# ZARGENART OPERATIONS
+class ZargenartCRUD:
+    # Function to create a new Zargenart
+    def create_zargenart(self, db: Session, zargenart: CreateZargenart):
+        new_z = Zargenart(**zargenart.model_dump())
+        db.add(new_z)
+        db.commit()
+        db.refresh(new_z)
+        return new_z
+    
+    # Function to get all zargenarten
+    def get_all_zargenarten(self, db: Session):
+        return db.query(Zargenart).all()
+    
+    # Function to get a single zargenart by name
+    def get_zargenart_by_name(self, db: Session, name: str):
+        return db.query(Zargenart).filter(Zargenart.name == name).first()
+    
+    # Function to update all zargenarten
+    def update_zargenart(self, db: Session, name: str, zargenart_data: CreateZargenart):
+        Z = self.get_zargenart_by_name(db, name)
+        if not Z:
+            return None
+        Z.name = zargenart_data.name
+        Z.kürzung = zargenart_data.kürzung
+        Z.description = zargenart_data.description
+        db.commit()
+        db.refresh(Z)
+        return Z
+    
+    # Function to delete a zargenart
+    def delete_zargenart(self, db: Session, name: str):
+        Z = self.get_zargenart_by_name(db, name)
+        if Z:
+            db.delete(Z)
+            db.commit()
+        return Z
+    
+    # Function to delete all zargenarten
+    def delete_all_zargenarten(self, db: Session):
+        all_z = self.get_all_zargenarten(db)
+        for z in all_z:
+            db.delete(z)
+        db.commit()
+        return all_z
+    
+# Kunden OPERATIONS
+class KundeCRUD:
+    # Function to create a new Kunde
+    def create_kunde(self, db: Session,  kunde: CreateKunde):
+        new_kunde = Kunde(**kunde.model_dump())
+        db.add(new_kunde)
+        db.commit()
+        db.refresh(new_kunde) 
+        return new_kunde
+     
+    # Function to get all kunden from the database with active database session as parameter
+    def get_all_kunden(self, db: Session):
+        return db.query(Kunde).all()
+    
+    # Function to return a single kunde by name with active database session as parameteres
+    def get_kunde_by_name(self, db: Session, name: str):
+        return db.query(Kunde).filter(Kunde.name == name).first()
+    
+    # Function to update a Kunde from the database identified by name
+    def update_kunde(self, db: Session, name: str, kunde_data: CreateKunde):
+        K = self.get_kunde_by_name(db, name)
+       
+        if not K:
+            return None
+        
+        K.name = kunde_data.name
+        K.adresse = kunde_data.adresse
+        K.email = kunde_data.email
+        K.tel = kunde_data.tel
+        db.commit()
+        db.refresh(K)
+        return K
+
+    # Function to delete a Kunde from the database identified by name
+    def delete_kunde(self, db: Session, name: str):
+        K = self.get_kunde_by_name(db, name) 
+
+        if K:
+            db.delete(K)
+            db.commit()
+        return K
+
+    # Function to delete all Kunden
+    def delete_all_kunden(self, db: Session):
+        K = self.get_all_kunden(db)
+
+        for k in K:
+            db.delete(k) 
+        db.commit() 
+        return K
+    
+# Kunden OPERATIONS
+class LagerOrtCRUD:
+    # Function to create a new Lager Ort
+    def create_lagerort(self, db: Session,  lagerort: CreateLagerOrt):
+        new_lagerort = Lager(**lagerort.model_dump())
+        db.add(new_lagerort)
+        db.commit()
+        db.refresh(new_lagerort) 
+        return new_lagerort
+    
+     # Function to create a Lagerorte in bulk
+    def create_lagerort_bulk(self, db: Session, lagerorte: list[CreateLagerOrt]):
+        new_orte = []
+        for ort in lagerorte:
+            new_ort = self.create_lagerort(db, ort)
+            new_orte.append(new_ort)
+        return new_orte
+
+    # Function to get all Lagerorten from the database with active database session as parameter
+    def get_all_lagerorten(self, db: Session):
+        return db.query(Lager).all()
+    
+    # Function to return a single lager ort by name with active database session as parameteres
+    def get_lagerort_by_name(self, db: Session, name: str):
+        return db.query(Lager).filter(Lager.name == name).first()
+    
+    # Function to update a Lager Ort from the database identified by name
+    def update_lagerort(self, db: Session, name: str, lager_data: CreateLagerOrt):
+        L = self.get_lagerort_by_name(db, name)
+       
+        if not L:
+            return None
+        
+        L.name = lager_data.name
+
+        db.commit()
+        db.refresh(L)
+        return L
+
+    # Function to delete a Lager Ort from the database identified by name
+    def delete_lagerort(self, db: Session, name: str):
+        L = self.get_lagerort_by_name(db, name) 
+
+        if L:
+            db.delete(L)
+            db.commit()
+        return L
+
+    # Function to delete all LagerOrten
+    def delete_all_lagerorten(self, db: Session):
+        L = self.get_all_lagerorten(db)
+
+        for l in L:
+            db.delete(l) 
+        db.commit() 
+        return L
