@@ -91,27 +91,56 @@ document.getElementById("dataForm").addEventListener("submit", function(event){
     }
 })
 
-// Function to make a request to the now deployed backend API
+// Function to make a request to the now deployed backend API & display results
 function fetchLadeschein(){
-    fetch("https://klappt-holz.onrender.com/ladelist")
+    fetch("https://klappt-holz.onrender.com/ladelist") // Sends a request to the backend
 
     // Checks the HTTP Response and throws error if not OK
      .then((response) => {
         if (!response.ok) {
             throw new Error(`Status: ${response.status}`);
         }
-    // Response is changed from JSON string to JS object if OK
-        return response.json();
-     })
-    
-     // Logs JSON if request was successful
-     .then(data => {
-        console.log(data);
+        return response.json(); // Response is changed from JSON string to a real JS object into if OK
      })
 
-     // Runs incase of a network error and shows it to user
+     // Gets display container and clears any previous results after successful JSON conversion
+     .then(data => {
+        const output = document.getElementById("output");
+        output.innerHTML = "";
+
+        // Loops through each pallete in the returned data uging forEach function in form of do this to every pallete.  Palette index numbers pallets starting from 1
+        data.forEach((pallet, palletIndex) => {
+            const title = document.createElement("h3"); // Creates ttitle for each pallete
+            title.textContent = `Pallet #${palletIndex + 1} - Kunde: ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`; // Adds text to the title
+            output.appendChild(title); // Adds the title to the page
+
+            // Loops through each goos inside the current pallet using forEach 
+            pallet.Waren.forEach((item, itemIndex) => {
+                const box = document.createElement("div"); // Creates a box for each good in the pallet
+
+                // First line of text
+                const line1 = document.createElement("p");
+                line1.textContent = `${itemIndex + 1}. ${item.lagerort} - ${item.mark} -  ${item.type}`;
+
+                // Second line of text 
+                const line2 = document.createElement("p");
+                line2.textContent = `Richtung: ${item.richtung} | ${item.breite} x ${item.höhe} | ${item.gewicht} Kgs | Menge: ${item.client_count}`
+
+                // Adds both lines to the box
+                box.appendChild(line1);
+                box.appendChild(line2);
+
+                output.appendChild(box); // Adds the box to the page
+
+                output.appendChild(document.createElement("br")); // Adds an empty line to create space between goods
+            });
+
+            output.appendChild(document.createElement("hr")); // Add a horizontal line after each pallet
+        });
+     })
+     // Runs incase of a network error and shows it to user plus console logging it for debugging
     .catch(error => {
         alert("Fehler beim Laden der Daten, " + error.message);
+        console.error(error);
     });
 }
-
