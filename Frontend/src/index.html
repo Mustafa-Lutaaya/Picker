@@ -21,12 +21,11 @@
     
     <div class="container">
         <div class="column">
-            <h2>Ladeschein Suchen</h2>
+            <h3>Ladeschein Suchen</h3>
 
             <form id="dataForm">
                 <div>
-                    <label for="deliveryDate">Datum</label>
-                    <input type="date" id="deliveryDate" name="date" />
+                    <input type="date" id="deliveryDate" name="date" />    
                 </div>
                 <br/>
                 <div>
@@ -36,8 +35,12 @@
 
             <div id="output"></div>
         </div>
-        <div class="column">
 
+        <div class="column">
+            <div>
+                <button onclick="displaySortedSchein()">Sortieren</button>
+            </div>
+            <div id="sortedOutput"></div>
         </div>
     </div>
 

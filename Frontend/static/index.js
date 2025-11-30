@@ -95,6 +95,11 @@ document.getElementById("dataForm").addEventListener("submit", function(event){
 
 // Function to make a request to the now backend API, fetch data and add it to the global list
 function fetchLadeschein(){
+    const output = document.getElementById("output");
+
+    // Displays loading state in output column while fetching data
+    output.innerHTML = "<p>Lädt...</p>";
+
     fetch("https://klappt-holz.onrender.com/ladelist") // Sends a request to the backend
 
     // Checks the HTTP Response and throws error if not OK
@@ -125,7 +130,7 @@ function displayscheinData(data){
     // Loops through each pallete in the returned data uging forEach function in form of do this to every pallete.  Palette index numbers pallets starting from 1
     data.forEach((pallet, palletIndex) => {
         const title = document.createElement("h3"); // Creates ttitle for each pallete
-        title.textContent = `Pallet #${palletIndex + 1} - Kunde: ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`; // Adds text to the title
+        title.textContent = `Pallet #${palletIndex + 1}. ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`; // Adds text to the title
         output.appendChild(title); // Adds the title to the page
 
         // Loops through each goos inside the current pallet using forEach 
@@ -141,9 +146,9 @@ function displayscheinData(data){
 
             // Checks if the item is a Zarge, then include wandstärke
             if(item.type === "Zarge") {
-            line2.textContent =`Richtung: ${item.richtung} | ` + `${item.breite} x ${item.höhe} | ` + `WS: ${item.wandstärke} mm | ` + `| QTY: ${item.client_count}`;
+            line2.textContent =`${item.richtung} ` + `${item.breite} x ${item.höhe} ` + `WS: ${item.wandstärke}mm ` + `QTY: ${item.client_count}`;
             } else {
-                line2.textContent =`Richtung: ${item.richtung} | ` + `${item.breite} x ${item.höhe} | ` + ` | QTY: ${item.client_count}`;
+                line2.textContent =`${item.richtung} ` + `${item.breite} x ${item.höhe} ` + `QTY: ${item.client_count}`;
             }
 
             // Adds both lines to the box
@@ -155,6 +160,102 @@ function displayscheinData(data){
             output.appendChild(document.createElement("br")); // Adds an empty line to create space between goods
         });
 
-        output.appendChild(document.createElement("hr")); // Add a horizontal line after each pallet
+        output.appendChild(document.createElement("hr")); // Adds a horizontal line after each pallet
+    });
+}
+
+// Classes for data wrapping
+// Ware Class to represent each item on a pallet
+class Ware{
+    constructor(data){
+        this.lagerort = data.lagerort;
+        this.mark = data.mark;
+        this.type = data.type;
+        this.richtung = data.richtung;
+        this.breite = data.breite;
+        this.höhe = data.höhe;
+        this.gewicht = data.gewicht;
+        this.client_count = data.client_count;
+        this.wandstärke = data.wandstärke || null; // Remains undefined if item is not a Zarge
+    }
+}
+
+// Pallet Class to represent a pallent with its goods
+class Pallet{
+    constructor(data){
+        this.Kunde = data.Kunde;
+        this.Gewicht = data.Gewicht;
+        this.Waren = data.Waren.map(item => new Ware(item)); // Takes each item and turns it into a Ware Object and gives it the same properties
+    }
+
+    // Method to sort goods on the pallet with Türen first then zargen plus higher height and width first
+    sortGoods(){
+        this.Waren.sort((a,b ) => {
+            // Türen befor Zarge Rule
+            if (a.type !== b.type){
+                if (a.type === "Tür") return -1; // A First
+                else return 1; // B First
+            }
+
+            // Höhe rule
+            if (a.höhe !== b.höhe){
+                if (a.höhe > b.höhe) return -1; // A comes first as its tall
+                else return 1; // B comes first when tall
+            }
+
+            // Breite rule
+            if (a.breite !== b.breite){
+                if (a.breite > b.breite) return -1; // A comes first as its wider
+                else return 1; // B comes first when wider
+            }
+
+            return 0; // Keeps original order when everything is equal
+        });
+    }
+}
+
+
+// Function to display sorted pallets in the second column
+function displaySortedSchein() {
+    const sortedOutput = document.getElementById("sortedOutput"); // Gets Second Container
+    sortedOutput.innerHTML = ""; // Clears previous sorted results
+
+    // Wraps the scheinData into Pallet objects
+    const pallets = scheinData.map(p => new Pallet(p));
+
+    // Sorts goods on each pallet using the Pallet class method
+    pallets.forEach(pallet => pallet.sortGoods());
+
+    // Displays the sorted pallets
+    pallets.forEach((pallet, palletIndex) => {
+        const title = document.createElement("h3"); // Creates ttitle for each pallete
+        title.textContent = `Pallet #${palletIndex + 1}. ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`;
+        sortedOutput.appendChild(title);
+
+        // Loops through each sorted good
+        pallet.Waren.forEach((item, itemIndex) => {
+            const box = document.createElement("div");
+
+            // First line of text
+            const line1 = document.createElement("p");
+            line1.textContent = `${itemIndex + 1}. ${item.lagerort} - ${item.mark} - ${item.type}`;
+
+            // Second line of Text
+            const line2 = document.createElement("p");
+            if(item.type === "Zarge") {
+                line2.textContent = `${item.richtung} ${item.breite} x ${item.höhe} WS: ${item.wandstärke}mm  QTY: ${item.client_count}`;
+            } else {
+                line2.textContent = `${item.richtung} ${item.breite} x ${item.höhe} QTY: ${item.client_count}`;
+            }
+
+            // Adds both lines to the box
+            box.appendChild(line1);
+            box.appendChild(line2);
+
+            sortedOutput.appendChild(box); // Adds the box to the second column
+            sortedOutput.appendChild(document.createElement("br")); // Adds an empty line to create space between goods
+        });
+
+        sortedOutput.appendChild(document.createElement("hr")); // Adds a horizontal line after each pallet
     });
 }

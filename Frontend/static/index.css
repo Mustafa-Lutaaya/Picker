@@ -29,8 +29,7 @@ padding: 20px;
 .header{
     display: flex;
     justify-content: space-between;
-    margin-bottom: 50px;
-
+    margin-bottom: 30px;
 }
 
 .header-logo{
@@ -49,23 +48,19 @@ padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  gap: 20px;          
+  gap: 20px;     
+  height: 75vh; 
+  overflow: hidden;
 }
 
 .column {
   flex: 1;            
-  width: calc((100% - 40px) / 2); 
   background: black;
   border: #4E31AA dotted ;
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
-}
-
-label{
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+  overflow-y: auto; 
 }
 
 input[type="date"],
@@ -79,7 +74,7 @@ input[type="text"]{
 input[type="submit"]{
     background-color: #4E31AA ;
     color: white;
-    padding: 10px, 15px;
+    padding: 10px 15px;
     border: 10px;
     border-radius: 5%;
     cursor: pointer;
@@ -87,4 +82,66 @@ input[type="submit"]{
 }
 input[type="submit"]:hover{
     background-color: #3A1078;
+}
+
+button{
+    background-color: #4E31AA;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    align-items: right;
+}
+
+button:hover{
+    background-color: #3A1078;
+}
+
+/* Mobile Query to stack columns vertically, decrease font size and make logo smaller */
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column; 
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    body {
+        font-size: 14px; 
+    }
+
+    .header-logo {
+        max-width: 70px;
+    }
+
+    .column {
+        width: 100%;
+        padding: 8px;
+    }
+}
+
+/* Tablet / Medium screens to stack columns vertically, decrease font size and make logo smaller  */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    .container {
+        flex-direction: column; 
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    body {
+        font-size: 16px;
+    }
+
+    .header-logo {
+        max-width: 85px; 
+    }
+
+    
+    .column {
+        width: 100%;
+    }
+
 }
