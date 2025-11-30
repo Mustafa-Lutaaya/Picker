@@ -86,6 +86,32 @@ document.getElementById("dataForm").addEventListener("submit", function(event){
         alert("Falsches Datum gewählt. Wähle den nächsten gültigen Liefertermin.");
         return;
     } else {
-        alert("Gültiges Lieferdatum");
+    // Calls the 
+        fetchLadeschein();
     }
 })
+
+// Function to make a request to the now deployed backend API
+function fetchLadeschein(){
+    fetch("https://klappt-holz.onrender.com/ladelist")
+
+    // Checks the HTTP Response and throws error if not OK
+     .then((response) => {
+        if (!response.ok) {
+            throw new Error(`Status: ${response.status}`);
+        }
+    // Response is changed from JSON string to JS object if OK
+        return response.json();
+     })
+    
+     // Logs JSON if request was successful
+     .then(data => {
+        console.log(data);
+     })
+
+     // Runs incase of a network error and shows it to user
+    .catch(error => {
+        alert("Fehler beim Laden der Daten, " + error.message);
+    });
+}
+
