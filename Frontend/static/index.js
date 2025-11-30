@@ -37,6 +37,8 @@ const Uhrzeit = () => {
 Uhrzeit() // Function Call to display on page load
 setInterval(Uhrzeit, 1000); // Calls the function every 1000 milliseconds / 1 second to update in real time
 
+let scheinData = [] // Global list to store data from the server
+
 // Event Listening on Form submit
 document.getElementById("dataForm").addEventListener("submit", function(event){
     event.preventDefault(); // Prevents form from reload during submit
@@ -91,7 +93,7 @@ document.getElementById("dataForm").addEventListener("submit", function(event){
     }
 })
 
-// Function to make a request to the now deployed backend API & display results
+// Function to make a request to the now backend API, fetch data and add it to the global list
 function fetchLadeschein(){
     fetch("https://klappt-holz.onrender.com/ladelist") // Sends a request to the backend
 
@@ -105,42 +107,54 @@ function fetchLadeschein(){
 
      // Gets display container and clears any previous results after successful JSON conversion
      .then(data => {
-        const output = document.getElementById("output");
-        output.innerHTML = "";
-
-        // Loops through each pallete in the returned data uging forEach function in form of do this to every pallete.  Palette index numbers pallets starting from 1
-        data.forEach((pallet, palletIndex) => {
-            const title = document.createElement("h3"); // Creates ttitle for each pallete
-            title.textContent = `Pallet #${palletIndex + 1} - Kunde: ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`; // Adds text to the title
-            output.appendChild(title); // Adds the title to the page
-
-            // Loops through each goos inside the current pallet using forEach 
-            pallet.Waren.forEach((item, itemIndex) => {
-                const box = document.createElement("div"); // Creates a box for each good in the pallet
-
-                // First line of text
-                const line1 = document.createElement("p");
-                line1.textContent = `${itemIndex + 1}. ${item.lagerort} - ${item.mark} -  ${item.type}`;
-
-                // Second line of text 
-                const line2 = document.createElement("p");
-                line2.textContent = `Richtung: ${item.richtung} | ${item.breite} x ${item.höhe} | ${item.gewicht} Kgs | Menge: ${item.client_count}`
-
-                // Adds both lines to the box
-                box.appendChild(line1);
-                box.appendChild(line2);
-
-                output.appendChild(box); // Adds the box to the page
-
-                output.appendChild(document.createElement("br")); // Adds an empty line to create space between goods
-            });
-
-            output.appendChild(document.createElement("hr")); // Add a horizontal line after each pallet
-        });
+        scheinData = data;
+        displayscheinData(data);
      })
      // Runs incase of a network error and shows it to user plus console logging it for debugging
     .catch(error => {
         alert("Fehler beim Laden der Daten, " + error.message);
         console.error(error);
+    });
+}
+
+// Function to display fetched data
+function displayscheinData(data){
+    const output = document.getElementById("output");
+    output.innerHTML = "";
+
+    // Loops through each pallete in the returned data uging forEach function in form of do this to every pallete.  Palette index numbers pallets starting from 1
+    data.forEach((pallet, palletIndex) => {
+        const title = document.createElement("h3"); // Creates ttitle for each pallete
+        title.textContent = `Pallet #${palletIndex + 1} - Kunde: ${pallet.Kunde.name} | ${pallet.Gewicht} Kgs`; // Adds text to the title
+        output.appendChild(title); // Adds the title to the page
+
+        // Loops through each goos inside the current pallet using forEach 
+        pallet.Waren.forEach((item, itemIndex) => {
+            const box = document.createElement("div"); // Creates a box for each good in the pallet
+
+            // First line of text
+            const line1 = document.createElement("p");
+            line1.textContent = `${itemIndex + 1}. ${item.lagerort} - ${item.mark} -  ${item.type}`;
+
+            // Second line of text 
+            const line2 = document.createElement("p");
+
+            // Checks if the item is a Zarge, then include wandstärke
+            if(item.type === "Zarge") {
+            line2.textContent =`Richtung: ${item.richtung} | ` + `${item.breite} x ${item.höhe} | ` + `WS: ${item.wandstärke} mm | ` + `| QTY: ${item.client_count}`;
+            } else {
+                line2.textContent =`Richtung: ${item.richtung} | ` + `${item.breite} x ${item.höhe} | ` + ` | QTY: ${item.client_count}`;
+            }
+
+            // Adds both lines to the box
+            box.appendChild(line1);
+            box.appendChild(line2);
+
+            output.appendChild(box); // Adds the box to the page
+
+            output.appendChild(document.createElement("br")); // Adds an empty line to create space between goods
+        });
+
+        output.appendChild(document.createElement("hr")); // Add a horizontal line after each pallet
     });
 }
