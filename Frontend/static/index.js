@@ -36,3 +36,56 @@ const Uhrzeit = () => {
 
 Uhrzeit() // Function Call to display on page load
 setInterval(Uhrzeit, 1000); // Calls the function every 1000 milliseconds / 1 second to update in real time
+
+// Event Listening on Form submit
+document.getElementById("dataForm").addEventListener("submit", function(event){
+    event.preventDefault(); // Prevents form from reload during submit
+
+    const inputDate = document.getElementById("deliveryDate").value;
+
+    // Ensures a date is entered
+    if(!inputDate){
+        alert("Bitte gib das Datum ein");
+        return;
+    }
+
+    // Converts input string into a Date Object & initializes a new onject for now
+    const selectedDate = new Date(inputDate);
+    const today = new Date();
+
+    // Zeroes out the time part of the date to enforce comparisons only by day
+    today.setHours(0,0,0,0);
+    selectedDate.setHours(0,0,0,0);
+
+    const weekDay = today.getDay(); // Returns a number for todays weekday
+
+    // Weekend Automatic Handling
+    let validDate = new Date(today);
+
+    if(weekDay === 5){
+        validDate.setDate(today.getDate() + 3);
+    } else {
+        validDate.setDate(today.getDate() + 1);
+    }
+
+    // Date Validation Checks 
+    // If the selected date is in the past
+    if (selectedDate < today){
+        alert("Datum liegt in der Vergangenheit. Nicht erlaubt.");
+        return;
+    // If the selected date is today
+    } else if (selectedDate.getTime() === today.getTime()){
+        alert("Wähle das richtige Lieferdatum. Heute ist nicht erlaubt.");
+        return;
+    // If the selected date is later than the next valid delivery day
+    } else if  (selectedDate.getTime() > validDate.getTime()) {
+        alert("Datum liegt zu weit in der Zukunft.");
+        return;
+    // If the selected date is earlier than the next valid delivery day
+    } else if (selectedDate.getTime() < validDate.getTime()) {
+        alert("Falsches Datum gewählt. Wähle den nächsten gültigen Liefertermin.");
+        return;
+    } else {
+        alert("Gültiges Lieferdatum");
+    }
+})
