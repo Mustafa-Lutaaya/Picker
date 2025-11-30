@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey # Defines columns and
 from sqlalchemy.orm import relationship  # Used to define relationships between ORM models 
 from database.database import Base  # Imports the declarative base from the database module
 from sqlalchemy import BigInteger
+
 # MAIN ITEM MANAGEMENT
 # ORM Model representing a row in the "Türen" table
 class Tür(Base):
@@ -19,6 +20,14 @@ class Tür(Base):
     gewicht = Column(Integer, nullable=True)
     description = Column(String, nullable=True) # Adds an optional description
     
+    def __repr__(self):
+        mark = self.mark.name if self.mark else 'N/A'
+        richtung = self.richtung.kürzung if self.richtung else 'N/A'
+        höhe = self.höhe.nummer if self.höhe else 'N/A'
+        breite = self.breite.nummer if self.breite else 'N/A'
+        oberfläche = self.oberfläche.name if self.oberfläche else 'N/A'
+        schlossart = self.schlossart.kürzung if self.schlossart else 'N/A'
+        return f"Tür({mark} | {richtung} | H:{höhe} | B:{breite} | {oberfläche} | {schlossart})"
 
     @property
     def mark_name(self):
@@ -74,6 +83,15 @@ class Zarge(Base):
     gewicht = Column(Integer, nullable=True)
     description = Column(String, nullable=True) # Adds an optional description
 
+    def __repr__(self):
+        mark = self.mark.name if self.mark else 'N/A'
+        richtung = self.richtung.kürzung if self.richtung else 'N/A'
+        höhe = self.höhe.nummer if self.höhe else 'N/A'
+        breite = self.breite.nummer if self.breite else 'N/A'
+        wandstärke = self.wandstärke.nummer if self.wandstärke else 'N/A'
+        zargenart = self.zargenart.kürzung if self.zargenart else 'N/A'
+        return f"Zarge({mark} | {richtung} | H:{höhe} | B:{breite} | W:{wandstärke} | {zargenart})"
+
     @property
     def mark_name(self):
         return self.mark.name if self.mark else None
@@ -128,6 +146,9 @@ class Mark(Base):
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
     
+    def __repr__(self):
+        return f"{self.name}"
+    
     türen = relationship("Tür", back_populates="mark", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
     zargen = relationship("Zarge", back_populates="mark", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
     
@@ -139,6 +160,9 @@ class Richtung(Base):
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     kürzung = Column(String, nullable=False, unique=True)  # Adds a kürzung Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
+    
+    def __repr__(self):
+        return f"{self.kürzung}"
     
     türen = relationship("Tür", back_populates="richtung", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
     zargen = relationship("Zarge", back_populates="richtung", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
@@ -152,6 +176,9 @@ class Höhe(Base):
     nummer = Column(Integer, index=True, nullable=False) # Adds a Number field for the specific höhe
     description = Column(String, nullable=True) # Adds an optional description
     
+    def __repr__(self):
+        return f"{self.nummer}"
+    
     türen = relationship("Tür", back_populates="höhe", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
     zargen = relationship("Zarge", back_populates="höhe", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
 
@@ -163,6 +190,9 @@ class Breite(Base):
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     nummer = Column(Integer, index=True, nullable=False) # Adds a Number field for the specific Breite
     description = Column(String, nullable=True) # Adds an optional description
+    
+    def __repr__(self):
+        return f"{self.nummer}"
     
     türen = relationship("Tür", back_populates="breite", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
     zargen = relationship("Zarge", back_populates="breite", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
@@ -176,6 +206,9 @@ class Wandstärk(Base):
     nummer = Column(Integer, index=True, nullable=False) # Adds a Number field for the specific Breite
     description = Column(String, nullable=True) # Adds an optional description
     
+    def __repr__(self):
+        return f"{self.nummer}"
+    
     zargen = relationship("Zarge", back_populates="wandstärke", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
 
 
@@ -186,6 +219,9 @@ class Oberfläche(Base):
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
+    
+    def __repr__(self):
+        return f"{self.name}"
     
     türen = relationship("Tür", back_populates="oberfläche", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
     zargen = relationship("Zarge", back_populates="oberfläche", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
@@ -200,6 +236,9 @@ class Schlossart(Base):
     kürzung = Column(String, nullable=False, unique=True)  # Adds a kürzung Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
     
+    def __repr__(self):
+        return f"{self.kürzung}"
+    
     türen = relationship("Tür", back_populates="schlossart", cascade="all, delete-orphan", single_parent=True) # Relationship back to the tür
 
 # ORM Model representing a row in the "Zargenart" table
@@ -210,6 +249,9 @@ class Zargenart(Base):
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
     kürzung = Column(String, nullable=False, unique=True)  # Adds a kürzung Name column that stores strings and is required
     description = Column(String, nullable=True) # Adds an optional description
+    
+    def __repr__(self):
+        return f"{self.kürzung}"
     
     zargen = relationship("Zarge", back_populates="zargenart", cascade="all, delete-orphan", single_parent=True) # Relationship back to the Zarge
 
@@ -223,7 +265,6 @@ class Kunde(Base):
     adresse = Column(String, nullable=False, unique=True)  # Adds a Adresse column that stores strings and is required
     tel = Column(BigInteger, index=True, nullable=False) # Adds a Number field for the Telephone Number using BigInteger
     email = Column(String, nullable=True) # Adds an optional description
-    
 
 # ORM Model representing a row in the "Largerort" table
 class Lager(Base):
@@ -231,6 +272,9 @@ class Lager(Base):
 
     id = Column(Integer, primary_key=True, index=True) # Primary Key marks the id column as a unique identifier while index:True creates an index for faster searches
     name = Column(String, nullable=False, unique=True)  # Adds a Main Name column that stores strings and is required
+
+    def __repr__(self):
+        return f"{self.name}"
 
     türen = relationship("Tür", back_populates="lagerort")
     zargen = relationship("Zarge", back_populates="lagerort")
