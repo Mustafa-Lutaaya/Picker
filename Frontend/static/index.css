@@ -145,3 +145,44 @@ button:hover{
     }
 
 }
+
+/* Print styles to format for printing */
+@media print {
+  body {
+    padding: 0;
+  }
+  .main {
+    border: none;
+    padding: 0;
+  }
+  .header {
+    display: none;
+  }
+  .container {
+    height: auto;
+    display: block;
+    width: 100%;
+  }
+  .column:first-child {
+    display: none;
+  }
+  .column:last-child {
+    display: block;
+    border: none;
+    padding: 20px;
+    overflow: visible;
+  }
+  #sortedOutput {
+    display: block;
+    border: none;
+    padding: 0;
+    overflow: visible;
+  }
+  #sortedOutput h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  #sortedOutput p {
+    margin: 5px 0;
+  }
+}

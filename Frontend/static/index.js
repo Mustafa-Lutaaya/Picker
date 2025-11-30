@@ -259,3 +259,14 @@ function displaySortedSchein() {
         sortedOutput.appendChild(document.createElement("hr")); // Adds a horizontal line after each pallet
     });
 }
+
+// Function to trigger browser print dialog window 
+function printSortedSchein() {
+  // Checks if there is sorted data to print
+  if (scheinData.length === 0) {
+    alert("Bitte sortieren Sie die Waren zuerst.")
+    return
+  }
+  // Triggers the browser print dialog
+  window.print()
+}
